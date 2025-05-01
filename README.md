@@ -49,8 +49,8 @@ impl Authorizer<User, View, Order> for OrderAuthorizer {
     - `AuthorizerWithContext`
 
 3. **Decisions**  
-   Authorizers return an `AuthorizationDecision<AllowReason, ForbidReason>. Allow and forbid reason are both optional, 
-defaulting to unit`:
+   Authorizers return an `AuthorizationDecision<AllowReason, ForbidReason>`. Allow and forbid reason are both optional, 
+defaulting to unit:
     - `Allowed { reason }`
     - `Forbidden { reason }`
     - Includes methods like:
@@ -67,33 +67,6 @@ defaulting to unit`:
 - Optional context support for things like rate limits, tenancy, etc.
 - Optional user-defined reasons for allowed/forbidden decisions
 - Flexible organization: Unopinionated in how to organize your authorizer inputs or authorizers, eg. one central authorizer for your application or one per resource
-
-## Getting Started
-
- Add to your Cargo.toml:
-```toml
-[dependencies]
-traitgate = "0.1"
- ```
-
- In your code:
-```rust
-use traitgate::prelude::*;
-// Define your types:
-struct User { id: u64, is_admin: bool }  //actor
-struct Order  { user_id: u64, num_books: u64 } //resource
-struct View; struct Edit; //actions
-// Implement authorization checks:
-struct OrderAuthorizer;
-impl Authorizer<User, View, Order> for OrderAuthorizer {
-    fn check(user: &User, _: &View, order: &Order) -> AuthorizationDecision {
-        if (user.id == order.user_id || user.is_admin) {
-          return AuthorizationDecision::allowed();
-        }
-        AuthorizationDecision::forbidden()
-    }
-}
-```
 
 ## Full Example
 
