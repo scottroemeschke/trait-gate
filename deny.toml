@@ -1,6 +1,6 @@
 [advisories]
 vulnerability = "deny"
-unmaintained = "warn"
+unmaintained = "all"
 yanked = "warn"
 notice = "warn"
 
@@ -8,11 +8,8 @@ notice = "warn"
 multiple-versions = "warn"
 wildcards = "warn"
 
-# Deny all dependencies
-[dependencies]
-allow-build = []
+[bans.crates]
 deny = ["*"]
 
-# Allow dev-dependencies (e.g. for docs, examples)
-[dev-dependencies]
-allow = ["*"]
+[exclude]
+dev = true
