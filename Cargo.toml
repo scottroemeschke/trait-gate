@@ -1,0 +1,15 @@
+[package]
+name = "trait-gate"
+version = "0.1.0"
+edition = "2024"
+description = "A zero-dependency authorization mini-library powered by stateless traits and an ergonomic `AuthorizationDecision` enum."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/scottroemeschke/trait-gate"
+readme = "README.md"
+keywords = ["authorization", "auth"]
+
+[dependencies]
+
+[dev-dependencies]
+anyhow = "1.0.98"
+tracing = "0.1.41"
