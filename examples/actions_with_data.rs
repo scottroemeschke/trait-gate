@@ -6,6 +6,7 @@ enum Plan {
     Pro,
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 struct User {
     id: u64,
@@ -42,7 +43,7 @@ impl
         UploadForbiddenReason,
     > for UploadAuthorizer
 {
-    fn check(
+    fn check_with_context(
         user: &User,
         action: &Upload,
         _app: &App,
@@ -96,23 +97,23 @@ fn main() {
     let huge_upload = Upload { size_mb: 200 };
 
     // Free user, small file within limits => allowed
-    let d1 = UploadAuthorizer::check(&user, &small_upload, &App, &ctx_almost_full);
+    let d1 = UploadAuthorizer::check_with_context(&user, &small_upload, &App, &ctx_almost_full);
     assert!(d1.is_allowed());
     println!("Free small upload allowed");
 
     // Free user, file too large for plan
-    let d2 = UploadAuthorizer::check(&user, &big_upload, &App, &ctx_empty);
+    let d2 = UploadAuthorizer::check_with_context(&user, &big_upload, &App, &ctx_empty);
     let d2 = d2.inspect_forbidden(|r| println!("Denied: {:?}", r));
     assert!(d2.is_forbidden());
 
     // Free user, uploading small file would exceed monthly quota
     let plus = Upload { size_mb: 10 };
-    let d3 = UploadAuthorizer::check(&user, &plus, &App, &ctx_almost_full);
+    let d3 = UploadAuthorizer::check_with_context(&user, &plus, &App, &ctx_almost_full);
     let d3 = d3.inspect_forbidden(|r| println!("Denied: {:?}", r));
     assert!(d3.is_forbidden());
 
     // Pro user, large uploads are fine
-    let d4 = UploadAuthorizer::check(&pro_user, &huge_upload, &App, &ctx_empty);
+    let d4 = UploadAuthorizer::check_with_context(&pro_user, &huge_upload, &App, &ctx_empty);
     assert!(d4.is_allowed());
     println!("Pro huge upload allowed");
 }

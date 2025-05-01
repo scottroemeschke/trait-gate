@@ -106,7 +106,7 @@
 //!    EditPostDenied,
 //!> for PostAuthorizer
 //!{
-//!    fn check(
+//!    fn check_with_context(
 //!        user: &User,
 //!        _: &Edit,
 //!        post: &Post,
@@ -125,7 +125,7 @@
 //!    }
 //!}
 //!
-//!impl Authorizer<User, Delete, Post> for PostAuthorizer {
+//!impl Authorizer<User, Delete, Post, (), String> for PostAuthorizer {
 //!    fn check(
 //!        user: &User,
 //!        action: &Delete,
@@ -156,9 +156,10 @@
 //!    let admin          = User { id: 4, is_admin: true,  is_pro: false };
 //!
 //!    let post = Post { author_id: 1, content: "Hello".into() };
+//!    let post_by_pro = Post { author_id: 2, content: "Hi".into() };
 //!    let ctx  = RateLimitContext { remaining_requests: 1 };
 //!
-//!    PostAuthorizer::check(&author_regular, &Edit, &post, &ctx)
+//!    PostAuthorizer::check_with_context(&author_regular, &Edit, &post, &ctx)
 //!        .expect_allowed("author should be able to edit");
 //!
 //!    let normal_delete = Delete { delete_forks: false };
@@ -170,7 +171,7 @@
 //!        .expect_forbidden("should have required Pro");
 //!    assert_eq!(reason, "Deleting forks requires a Pro subscription");
 //!
-//!    PostAuthorizer::check(&author_pro, &fork_delete, &post)
+//!    PostAuthorizer::check(&author_pro, &fork_delete, &post_by_pro)
 //!        .expect_allowed("Pro author can delete forks");
 //!
 //!    assert!(PostAuthorizer::check(&stranger, &normal_delete, &post).is_forbidden());

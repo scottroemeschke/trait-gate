@@ -51,7 +51,7 @@ pub trait AuthorizerWithContext<
     ///
     /// Returns an [`AuthorizationDecision`] that will be either allowed or forbidden and carrying
     /// optional reason data.
-    fn check(
+    fn check_with_context(
         actor: &Actor,
         action: &Action,
         resource: &Resource,

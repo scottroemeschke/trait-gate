@@ -12,6 +12,7 @@ struct AppCtx {
     tenant_id: u32,
 }
 
+#[allow(dead_code)]
 struct User {
     id: u32,
 }
@@ -24,7 +25,12 @@ struct BResource;
 
 struct AAuth;
 impl AuthorizerWithContext<User, FeatureA, AResource, AppCtx> for AAuth {
-    fn check(_u: &User, _a: &FeatureA, _r: &AResource, ctx: &AppCtx) -> AuthorizationDecision {
+    fn check_with_context(
+        _u: &User,
+        _a: &FeatureA,
+        _r: &AResource,
+        ctx: &AppCtx,
+    ) -> AuthorizationDecision {
         match ctx.env {
             Env::Dev => AuthorizationDecision::allowed(),
             Env::Prod => AuthorizationDecision::forbidden(),
@@ -34,7 +40,12 @@ impl AuthorizerWithContext<User, FeatureA, AResource, AppCtx> for AAuth {
 
 struct BAuth;
 impl AuthorizerWithContext<User, FeatureB, BResource, AppCtx> for BAuth {
-    fn check(_u: &User, _a: &FeatureB, _r: &BResource, ctx: &AppCtx) -> AuthorizationDecision {
+    fn check_with_context(
+        _u: &User,
+        _a: &FeatureB,
+        _r: &BResource,
+        ctx: &AppCtx,
+    ) -> AuthorizationDecision {
         if ctx.tenant_id == 1 {
             AuthorizationDecision::allowed()
         } else {
@@ -55,9 +66,9 @@ fn main() {
 
     let user = User { id: 7 };
 
-    assert!(AAuth::check(&user, &FeatureA, &AResource, &ctx_dev).is_allowed());
-    assert!(AAuth::check(&user, &FeatureA, &AResource, &ctx_prod).is_forbidden());
+    assert!(AAuth::check_with_context(&user, &FeatureA, &AResource, &ctx_dev).is_allowed());
+    assert!(AAuth::check_with_context(&user, &FeatureA, &AResource, &ctx_prod).is_forbidden());
 
-    assert!(BAuth::check(&user, &FeatureB, &BResource, &ctx_prod).is_allowed());
-    assert!(BAuth::check(&user, &FeatureB, &BResource, &ctx_dev).is_forbidden());
+    assert!(BAuth::check_with_context(&user, &FeatureB, &BResource, &ctx_prod).is_allowed());
+    assert!(BAuth::check_with_context(&user, &FeatureB, &BResource, &ctx_dev).is_forbidden());
 }

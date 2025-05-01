@@ -50,7 +50,7 @@ use std::fmt::{Debug, Display, Formatter};
 /// #[derive(Debug, PartialEq)]
 /// enum PostDeny { NotAuthor, RateLimited }
 ///
-/// let denied = AuthorizationDecision::forbidden_with(PostDeny::RateLimited);
+/// let denied = AuthorizationDecision::<(), PostDeny>::forbidden_with(PostDeny::RateLimited);
 /// assert_eq!(denied.into_result(), Err(PostDeny::RateLimited));
 /// ```
 ///
@@ -58,9 +58,9 @@ use std::fmt::{Debug, Display, Formatter};
 /// ```rust
 /// use traitgate::AuthorizationDecision;
 ///
-/// let decision = AuthorizationDecision::allowed_with("scope=admin");
+/// let decision = AuthorizationDecision::<&str, ()>::allowed_with("scope=admin");
 /// decision
-///     .inspect_allowed(|r| event!("granted via {}", r))
+///     .inspect_allowed(|r| println!("granted via {}", r))
 ///     .expect_allowed("expected to be allowed");
 /// ```
 ///
@@ -88,7 +88,8 @@ impl<F> AuthorizationDecision<(), F> {
     /// Create an `Allowed` decision when you don’t need a reason.
     ///
     /// ```rust
-    /// let ok: AuthorizationDecision<(), _> = AuthorizationDecision::allowed();
+    /// use traitgate::prelude::*;
+    /// let ok = AuthorizationDecision::<(),()>::allowed();
     /// assert!(ok.is_allowed());
     /// ```
     pub fn allowed() -> Self {
@@ -100,7 +101,8 @@ impl<A> AuthorizationDecision<A, ()> {
     /// Create a `Forbidden` decision when you don’t need a reason.
     ///
     /// ```rust
-    /// let no: AuthorizationDecision<_, ()> = AuthorizationDecision::forbidden();
+    /// use traitgate::prelude::*;
+    /// let no = AuthorizationDecision::<(),()>::forbidden();
     /// assert!(no.is_forbidden());
     /// ```
     pub fn forbidden() -> Self {
@@ -112,7 +114,9 @@ impl<A, F> AuthorizationDecision<A, F> {
     /// Create `Allowed { reason }` with your custom allow-reason.
     ///
     /// ```rust
-    /// AuthorizationDecision::allowed_with(NewPostAllowed { is_author: true });
+    /// use traitgate::prelude::*;
+    /// struct NewPostAllowed { is_author: bool }
+    /// AuthorizationDecision::<NewPostAllowed, ()>::allowed_with(NewPostAllowed { is_author: true });
     /// ```
     pub fn allowed_with(reason: A) -> Self {
         AuthorizationDecision::Allowed { reason }
@@ -121,7 +125,12 @@ impl<A, F> AuthorizationDecision<A, F> {
     /// Create `Forbidden { reason }` with your custom deny-reason.
     ///
     /// ```rust
-    /// AuthorizationDecision::forbidden_with(OrderModifyForbiddenReason::NotOwner);
+    /// use traitgate::prelude::*;
+    /// enum OrderModifyForbiddenReason {
+    ///   OrderIsHaunted,
+    ///   NotOwner
+    /// }
+    /// let dec = AuthorizationDecision::<(), OrderModifyForbiddenReason>::forbidden_with(OrderModifyForbiddenReason::NotOwner);
     /// ```
     pub fn forbidden_with(reason: F) -> Self {
         AuthorizationDecision::Forbidden { reason }
@@ -140,7 +149,8 @@ impl<A, F> AuthorizationDecision<A, F> {
     /// Convert into `Result<(), E>`, using `err` when forbidden.
     ///
     /// ```rust
-    /// # let dec = AuthorizationDecision::allowed();
+    /// use traitgate::prelude::*;
+    /// let dec = AuthorizationDecision::<(),()>::allowed();
     /// let res: Result<(), &str> = dec.ok_or("access denied");
     /// ```
     pub fn ok_or<E>(self, err: E) -> Result<(), E> {
@@ -173,6 +183,8 @@ impl<A, F> AuthorizationDecision<A, F> {
     ///
     /// ```rust
     /// // panics if decision is forbidden
+    /// use traitgate::prelude::*;
+    /// let dec = AuthorizationDecision::<(),()>::allowed();
     /// let reason = dec.expect_allowed("must be allowed");
     /// ```
     pub fn expect_allowed(self, msg: &str) -> A {
@@ -188,14 +200,16 @@ impl<A, F> AuthorizationDecision<A, F> {
     ///
     /// ```rust
     /// // panics if decision is forbidden
-    /// let reason = dec.expect_allowed("must be allowed");
+    /// use traitgate::prelude::*;
+    /// let dec = AuthorizationDecision::<(),()>::forbidden();
+    /// let reason = dec.expect_forbidden("must be forbidden");
     /// ```
     pub fn expect_forbidden(self, msg: &str) -> F {
         match self {
+            AuthorizationDecision::Forbidden { reason } => reason,
             AuthorizationDecision::Allowed { reason: _ } => {
                 panic!("{}", msg)
             }
-            AuthorizationDecision::Forbidden { reason } => reason,
         }
     }
 
@@ -203,7 +217,9 @@ impl<A, F> AuthorizationDecision<A, F> {
     ///
     /// ```rust
     /// // panics if decision is allowed
-    /// let reason = dec.unwrap_forbidden("must be forbidden");
+    /// use traitgate::prelude::*;
+    /// let dec = AuthorizationDecision::<(),()>::forbidden();
+    /// let reason = dec.unwrap_forbidden();
     /// ```
     pub fn unwrap_forbidden(self) -> F {
         match self {
@@ -218,7 +234,9 @@ impl<A, F> AuthorizationDecision<A, F> {
     ///
     /// ```rust
     /// // panics if decision is forbidden
-    /// let reason = dec.unwrap_allowed("must be allowed");
+    /// use traitgate::prelude::*;
+    /// let dec = AuthorizationDecision::<(),()>::allowed();
+    /// let reason = dec.unwrap_allowed();
     /// ```
     pub fn unwrap_allowed(self) -> A {
         match self {
@@ -236,7 +254,7 @@ impl<A, F> AuthorizationDecision<A, F> {
     ///
     /// ```
     /// # use traitgate::AuthorizationDecision;
-    /// let dec = AuthorizationDecision::forbidden_with("not owner");
+    /// let dec = AuthorizationDecision::<(), &str>::forbidden_with("not owner");
     /// dec.inspect_forbidden(|reason| println!("Denied because {}", reason));
     pub fn inspect_forbidden<G: FnOnce(&F)>(self, inspect_fn: G) -> Self {
         if let AuthorizationDecision::Forbidden { ref reason } = self {
@@ -253,7 +271,7 @@ impl<A, F> AuthorizationDecision<A, F> {
     ///
     /// ```
     /// # use traitgate::AuthorizationDecision;
-    /// let dec = AuthorizationDecision::allowed_with("admin");
+    /// let dec = AuthorizationDecision::<&str,()>::allowed_with("admin");
     /// dec.inspect_allowed(|reason| println!("Granted because {}", reason));
     /// ```
     pub fn inspect_allowed<G: FnOnce(&A)>(self, inspect_fn: G) -> Self {
@@ -269,6 +287,7 @@ mod tests {
     use super::*;
     use std::cell::Cell;
 
+    #[allow(clippy::unit_cmp)]
     #[test]
     fn basic_allowed_and_forbidden() {
         // Unit‐reason allowed
