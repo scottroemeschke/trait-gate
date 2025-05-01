@@ -6,10 +6,13 @@ struct User {
     id: u64,
     is_admin: bool,
 }
+
+#[allow(dead_code)]
 struct Post {
     id: u64,
     author: u64,
 }
+#[allow(dead_code)]
 struct Comment {
     id: u64,
     author: u64,

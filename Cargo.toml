@@ -1,5 +1,5 @@
 [package]
-name = "trait-gate"
+name = "traitgate"
 version = "0.1.0"
 edition = "2024"
 description = "A zero-dependency authorization mini-library powered by stateless traits and an ergonomic `AuthorizationDecision` enum."
@@ -12,4 +12,3 @@ keywords = ["authorization", "auth"]
 
 [dev-dependencies]
 anyhow = "1.0.98"
-tracing = "0.1.41"

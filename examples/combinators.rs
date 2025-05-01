@@ -5,10 +5,9 @@ use traitgate::prelude::*;
 struct User {
     id: u64,
     is_suspended: bool,
-    tweets_this_hour: u8,
-    tweet_limit: u8,
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 struct Tweet {
     id: u64,
@@ -16,9 +15,11 @@ struct Tweet {
     content: String,
 }
 
+#[allow(dead_code)]
 struct PostTweet {
     content: String,
 }
+
 struct DeleteTweet;
 struct LikeTweet;
 
@@ -71,8 +72,6 @@ fn main() -> Result<(), String> {
     let user = User {
         id: 1,
         is_suspended: false,
-        tweets_this_hour: 5,
-        tweet_limit: 5,
     };
 
     let post = PostTweet {
