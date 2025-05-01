@@ -1,15 +1,18 @@
+[graph]
+exclude-dev = true
+
 [advisories]
-vulnerability = "deny"
 unmaintained = "all"
 yanked = "warn"
-notice = "warn"
 
 [bans]
 multiple-versions = "warn"
 wildcards = "warn"
-
-[bans.crates]
 deny = ["*"]
 
-[exclude]
-dev = true
+[licenses]
+allow = ["MIT", "Apache-2.0"]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

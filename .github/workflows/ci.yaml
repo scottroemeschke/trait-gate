@@ -96,22 +96,8 @@ jobs:
 
   deny:
     name: Run cargo-deny
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Install cargo-deny
-        run: cargo install cargo-deny
-
-      - name: Run cargo-deny
-        run: cargo deny check
+    cargo-deny:
+      runs-on: ubuntu-22.04
+      steps:
+        - uses: actions/checkout@v4
+        - uses: EmbarkStudios/cargo-deny-action@v2
